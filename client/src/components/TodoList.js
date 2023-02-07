@@ -1,4 +1,5 @@
 import React from 'react'
+import {Link} from  'react-router-dom'
 
 function TodoList(props) {
   const {todos} = props
@@ -10,7 +11,11 @@ function TodoList(props) {
     <div>
         {
             todos.map((todo) => {
-                return <p key={todo._id}>{todo.name}</p>
+                return (
+                  <Link to={`/todo/${todo._id}`}>
+                    <p key={todo._id}>{todo.name}</p>
+                  </Link>
+                )
             })
         }
     </div>

@@ -46,6 +46,7 @@ function App() {
         {routes({
           onHandleAdd: handleAdd,
           todos,
+          onSetTodos: setTodos,
         }).map((route) => (
           <Route key={route.path} path={route.path} element={route.element} />
         ))}
