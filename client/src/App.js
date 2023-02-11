@@ -11,6 +11,8 @@ import CheckoutForm from "./components/CheckoutForm";
 import "./App.css";
 function App() {
   const [todos, setTodos] = useState(null)
+  const [fetchingUser, setFetchingUser] = useState(true)
+  const [user, setUser] = useState(null)
   const navigate = useNavigate()
 
   const handleAdd = async (e) => {
@@ -22,7 +24,7 @@ function App() {
       completed: false,
     }
 
-    let response = await axios.post('http://localhost:5005/api/create', todo)
+    let response = await axios.post('http://localhost:5005/api/create', todo,{withCredentials: true})
     toast(`Todo  ${todo.name} Added successfully. Redirecting in 5 seconds`)
     setTodos([response.data, ...todos])
     setTimeout(() => {
@@ -31,8 +33,18 @@ function App() {
   }
 
   async function getData(){
-      let response = await axios.get('http://localhost:5005/api/todos')
+    try {
+      let response = await axios.get('http://localhost:5005/api/todos',{withCredentials: true})
       setTodos(response.data)
+      let userResponse = await axios.get('http://localhost:5005/api/user', {withCredentials: true})
+      setUser(userResponse.data)
+      setFetchingUser(false)
+    }
+    catch(err){
+      setFetchingUser(false)
+    }
+      
+      
   }
 
   useEffect(() => {
@@ -52,13 +64,13 @@ function App() {
 
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
-    fetch("http://localhost:5005/api/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: [{ id: "xl-tshirt" }] }),
-    })
-      .then((res) => res.json())
-      .then((data) => setClientSecret(data.clientSecret));
+    // fetch("http://localhost:5005/api/create-payment-intent", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ items: [{ id: "xl-tshirt" }] }),
+    // })
+    //   .then((res) => res.json())
+    //   .then((data) => setClientSecret(data.clientSecret));
   }, []);
 
   const appearance = {
@@ -74,10 +86,52 @@ function App() {
       let img = e.target.imageUrl.files[0]
       let form = new FormData()
       form.append('imageUrl', img)
-      let response = await axios.post('http://localhost:5005/api/upload',form )
+      let response = await axios.post('http://localhost:5005/api/upload',form,{withCredentials: true} )
 
       console.log(response.data.url)
       // upload it to our DB
+  }
+
+  async function handleSignUp(e){
+    e.preventDefault();
+    const {username, email, password} = e.target;
+    let userObj = {
+      username: username.value,
+      email: email.value,
+      password: password.value
+    }
+    try {
+      let res = await axios.post('http://localhost:5005/api/signup', userObj,{withCredentials: true})
+      setUser(res.data)
+    }
+    catch(err){
+      console.log(err)
+    }
+  }
+
+  async function handleSignIn(e){
+    e.preventDefault();
+    const { email, password} = e.target;
+    let userObj = {
+      email: email.value,
+      password: password.value
+    }
+    try {
+      let res = await axios.post('http://localhost:5005/api/signin', userObj, {withCredentials: true})
+      setUser(res.data)
+    }
+    catch(err){
+      console.log(err)
+    }
+  }
+
+  async function handlelogout(e){
+    await axios.post('http://localhost:5005/api/logout', {}, {withCredentials: true})
+    setUser(null)
+  }
+
+  if (fetchingUser) {
+    return <p>Loding user</p>
   }
 
   return (
@@ -96,7 +150,7 @@ function App() {
     </form> 
       <ToastContainer />
       <GoogleSignIn onSuccess={handleSuccess} onFailure={handleFailure} />
-      <MyNav />
+      <MyNav user={user} onLogout={handlelogout} />
       <div  >
         <h1>Shopping List</h1>
       </div>
@@ -105,6 +159,8 @@ function App() {
           onHandleAdd: handleAdd,
           todos,
           onSetTodos: setTodos,
+          onSignUp: handleSignUp,
+          onSignIn: handleSignIn
         }).map((route) => (
           <Route key={route.path} path={route.path} element={route.element} />
         ))}
