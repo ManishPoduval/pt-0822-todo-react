@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Routes, Route, useNavigate, Form } from "react-router-dom";
 import MyNav from "./components/MyNav";
 import routes from "./config/routes";
@@ -9,10 +9,12 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "./components/CheckoutForm";
 import "./App.css";
+import {TodoAppContent} from './context/app.context'
+
 function App() {
-  const [todos, setTodos] = useState(null)
+  const {todos, setTodos} = useContext(TodoAppContent) 
   const [fetchingUser, setFetchingUser] = useState(true)
-  const [user, setUser] = useState(null)
+  const {user, setUser} = useContext(TodoAppContent)  
   const navigate = useNavigate()
 
   const handleAdd = async (e) => {
